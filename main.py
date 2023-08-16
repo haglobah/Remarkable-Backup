@@ -30,17 +30,19 @@ def walk_collection(collection: Collection, path: Path, client: Client):
         if isinstance(item, Collection):
             walk_collection(item, path / item.name, client)
         elif isinstance(item, Document):
-            item.package(client, path / f"{item.name}.zip")
+            item.package(client, path / f"{item.name}.rmn")
             item.pdf(path / f"{item.name}.pdf")
 
 
 with Client(config.host, config.port, config.username, config.password) as client:
-    client.download_dir(
-        Path("."),
-        root_dir / "dump",
-    )
-    walk_collection(
-        Collection.from_root(),
-        root_dir / "trove",
-        client,
-    )
+    if config.dump:
+        client.download_dir(
+            Path("."),
+            root_dir / "dump",
+        )
+    if config.trove:
+        walk_collection(
+            Collection.from_root(),
+            root_dir / "trove",
+            client,
+        )
