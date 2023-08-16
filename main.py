@@ -2,6 +2,7 @@ import json
 import logging
 import os
 from contextlib import suppress
+from functools import partial
 from pathlib import Path
 
 import config
@@ -12,8 +13,10 @@ from remarkable.client import Client
 logging.basicConfig(level=logging.DEBUG)
 logger = logging.getLogger(__name__)
 
-
-os.makedirs(config.root_dir, exist_ok=True)
+root_dir = Path(config.root_dir)
+os.makedirs(root_dir, exist_ok=True)
+os.makedirs(root_dir / "dump")
+os.makedirs(root_dir / "trove")
 
 
 def walk_collection(collection: Collection, path: Path, client: Client):
@@ -32,5 +35,12 @@ def walk_collection(collection: Collection, path: Path, client: Client):
 
 
 with Client(config.host, config.port, config.username, config.password) as client:
-    client.download_dir(Client.base_path, Path("output"))
-    # walk_collection(Collection.from_root(), Path(config.root_dir), client)
+    client.download_dir(
+        Path("."),
+        root_dir / "dump",
+    )
+    walk_collection(
+        Collection.from_root(),
+        root_dir / "trove",
+        client,
+    )

@@ -2,6 +2,7 @@ import os
 from contextlib import suppress
 from pathlib import Path, PurePath
 from zipfile import ZipFile
+import stat
 
 import paramiko
 from paramiko.client import AutoAddPolicy
@@ -57,12 +58,10 @@ class Client:
                 local_item = local_dir / item.filename
 
                 # It's a subdirectory
-                print(item.st_mode)
-                if item.st_mode & 0o4000:
+                if stat.S_ISDIR(item.st_mode):
                     _download_dir(remote_item, local_item)
                 # It's a file
                 else:
-                    print(remote_item.as_posix())
                     with self._sftp_client.file(remote_item.as_posix()) as file_reader:
                         with open(local_item, "wb") as file_writer:
                             file_writer.write(file_reader.read())
