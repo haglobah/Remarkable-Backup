@@ -7,3 +7,5 @@ To use, install the basic requirements by creating and entering a virtual enviro
 Finally, run `main.py`. It will create an `output` directory with two folders: `trove` and `dump`. Dump is a direct copy of ALL of the contents of your remarkable, in case you break the tablet and need to clone your data to a new tablet. Trove is a recreation of the directory structure of your tablet with PDFs and complementary ZIP `.rm` packages meant for your viewing.
 
 The tool uses the USB web interface to render `PDF`s from `RM` files, and direct SSH to export the additional metadata files.
+
+![image](https://github.com/404Wolf/remarkableBackup/assets/108041238/72d3982b-67ec-4bf7-90c6-29a6f2c781bc)
