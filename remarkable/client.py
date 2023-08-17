@@ -1,10 +1,7 @@
 import os
-import tarfile
-from contextlib import suppress
-from pathlib import Path, PurePath
-from tarfile import TarFile, TarInfo
-from zipfile import ZipFile
 import stat
+from contextlib import suppress
+from pathlib import Path
 
 import paramiko
 from paramiko.client import AutoAddPolicy
@@ -45,63 +42,42 @@ class Client:
     def __exit__(self, exc_type, exc_val, exc_tb):
         self._ssh_client.close()
 
-    def list_dir(self, path: Path = "."):
+    def list_dir(self, path: Path = Path(".")):
         """List the files of a directory."""
         return self._sftp_client.listdir(path.as_posix())
+
+    def exists(self, file: Path):
+        """Check whether a file exists."""
+        try:
+            self._sftp_client.stat(file.as_posix())
+            return True
+        except FileNotFoundError:
+            return False
+
+    def download_file(self, rm_path: Path, out_path: Path):
+        """Download a file from the tablet."""
+        if self.exists(rm_path):
+            self._sftp_client.get(rm_path.as_posix(), str(out_path))
+        else:
+            raise FileNotFoundError(f"Unable to locate file at {rm_path}.")
 
     def download_dir(self, rm_path: Path, out_path: Path):
         """Download a directory from the tablet."""
 
         # Recursively download the remote directory
         def _download_dir(remote_dir: Path, local_dir: Path):
-            os.makedirs(local_dir, exist_ok=True)
-            for item in self._sftp_client.listdir_attr(remote_dir.as_posix()):
-                remote_item = remote_dir / item.filename
-                local_item = local_dir / item.filename
+            with suppress(FileNotFoundError):
+                os.makedirs(local_dir, exist_ok=True)
+                print(remote_dir.as_posix())
+                for item in self._sftp_client.listdir_attr(remote_dir.as_posix()):
+                    remote_path = remote_dir / item.filename
+                    local_path = local_dir / item.filename
 
-                # It's a subdirectory
-                if stat.S_ISDIR(item.st_mode):
-                    _download_dir(remote_item, local_item)
-                # It's a file
-                else:
-                    with self._sftp_client.file(remote_item.as_posix()) as file_reader:
-                        with open(local_item, "wb") as file_writer:
-                            file_writer.write(file_reader.read())
+                    # It's a subdirectory
+                    if stat.S_ISDIR(item.st_mode):
+                        _download_dir(remote_path, local_path)
+                    # It's a file
+                    else:
+                        self.download_file(remote_path, local_path)
 
         _download_dir(rm_path, out_path)
-
-    def notebook(self, id: str, path: Path):
-        """Download a file from the tablet by id."""
-        with TarFile(path, "w") as package:
-
-            def _dump_directory(package_dir: Path, remarkable_path: Path):
-                """Dump all files in a directory on remarkable into folder on zip."""
-                directory = TarInfo(package_dir.as_posix())
-                directory.type = tarfile.DIRTYPE
-                package.addfile(directory)
-                for item in self.list_dir(remarkable_path):
-                    with self._sftp_client.file(
-                        (remarkable_path / item).as_posix()
-                    ) as item_reader:
-                        file = TarInfo((package_dir / item).as_posix())
-                        contents = item_reader
-                        file.size = item_reader.stat().st_size
-                        package.addfile(file, contents)
-
-            def _dump_file(filename: str, remarkable_path: Path):
-                """Dump a specific file to the zip."""
-                with self._sftp_client.file(remarkable_path.as_posix()) as item_reader:
-                    file = TarInfo(filename)
-                    file.type = tarfile.REGTYPE
-                    file.size = item_reader.stat().st_size
-                    contents = item_reader
-                    package.addfile(file, contents)
-
-            _dump_directory(Path(id), self.base_path / id)
-
-            _dump_file(f"{id}.content", self.base_path / f"{id}.content")
-            _dump_file(f"{id}.metadata", self.base_path / f"{id}.metadata")
-            _dump_file(f"{id}.pagedata", self.base_path / f"{id}.pagedata")
-            # _dump_directory(f"{id}.highlights", self.base_path / f"{id}.highlights")
-            # _dump_file("local.json", self.base_path / f"{id}.local")
-            # _dump_directory("thumbnails", self.base_path / f"{id}.thumbnails")

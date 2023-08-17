@@ -3,6 +3,7 @@ from typing import Iterator
 import requests
 
 import config
+from remarkable.client import Client
 from remarkable.items.document import Document
 from remarkable.items.item import Item
 
@@ -25,7 +26,7 @@ class Collection(Item):
         else:
             return f"http://{config.host}/documents/{self.id}"
 
-    def items(self) -> Iterator[Item]:
+    def items(self, client: Client) -> Iterator[Item]:
         """Iterate through the collection's items."""
         for item in requests.post(self.items_url).json():
             match item["Type"]:

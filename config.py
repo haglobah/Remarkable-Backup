@@ -3,5 +3,5 @@ port = "80"
 root_dir = "output"
 username = "root"
 password = "EUyAqTSK0Y"
-dump = False
+dump = True
 trove = True
