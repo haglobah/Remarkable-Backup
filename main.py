@@ -1,6 +1,9 @@
 import logging
 import os
+from datetime import datetime
 from pathlib import Path
+from tarfile import TarFile
+from tempfile import TemporaryDirectory
 
 import config
 from remarkable.client import Client
@@ -12,9 +15,6 @@ logger = logging.getLogger(__name__)
 
 root_dir = Path(config.root_dir)
 os.makedirs(root_dir, exist_ok=True)
-os.makedirs(root_dir / "dump", exist_ok=True)
-os.makedirs(root_dir / "trove" / "pdf", exist_ok=True)
-os.makedirs(root_dir / "trove" / "rmn", exist_ok=True)
 
 
 def walk_collection(
@@ -41,23 +41,33 @@ def walk_collection(
 
 
 with Client(config.host, config.port, config.username, config.password) as client:
-    if config.dump:
-        client.download_dir(
-            Path("."),
-            root_dir / "dump",
-        )
-    if config.trove:
-        walk_collection(
-            Collection.from_root(),
-            root_dir / "trove" / "rmn",
-            client,
-            rmn=True,
-            pdf=False
-        )
-        walk_collection(
-            Collection.from_root(),
-            root_dir / "trove" / "pdf",
-            client,
-            rmn=False,
-            pdf=True
-        )
+    with TemporaryDirectory() as tempdir:
+        tempdir = Path(tempdir)
+
+        if config.dump:
+            client.download_dir(
+                Path("."),
+                Path(tempdir / "dump"),
+            )
+
+        if config.trove:
+            walk_collection(
+                Collection.from_root(),
+                tempdir / "trove" / "rmn",
+                client,
+                rmn=True,
+                pdf=False
+            )
+            walk_collection(
+                Collection.from_root(),
+                tempdir / "trove" / "pdf",
+                client,
+                rmn=False,
+                pdf=True
+            )
+
+        timestamp = datetime.now().strftime('%Y-%m-%d')
+        with TarFile(root_dir / f"{timestamp}.gz", "w") as dump:
+            dump.add(tempdir, "")
+
+
