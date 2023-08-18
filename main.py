@@ -4,6 +4,7 @@ from datetime import datetime
 from pathlib import Path
 from tarfile import TarFile
 from tempfile import TemporaryDirectory
+from time import time
 
 import config
 from remarkable.client import Client
@@ -66,7 +67,7 @@ with Client(config.host, config.port, config.username, config.password) as clien
                 pdf=True
             )
 
-        timestamp = datetime.now().strftime('%Y-%m-%d')
+        timestamp = datetime.now().strftime(f'%Y-%m-%d-{time()}')
         with TarFile(root_dir / f"{timestamp}.gz", "w") as dump:
             dump.add(tempdir, "")
 
