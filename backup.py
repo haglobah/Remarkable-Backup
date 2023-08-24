@@ -67,7 +67,7 @@ with Client(config.host, config.port, config.username, config.password) as clien
                 pdf=True
             )
 
-        timestamp = datetime.now().strftime(f'%Y-%m-%d-{time()}')
+        timestamp = datetime.now().strftime(f'%Y-%m-%d-{round(time())}')
         with TarFile(root_dir / f"{timestamp}.gz", "w") as dump:
             dump.add(tempdir, "")
 
