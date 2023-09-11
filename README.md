@@ -8,4 +8,6 @@ Finally, run `backup.py`. It will create an `output` directory with two folders:
 
 The tool uses the USB web interface to render `PDF`s from `RM` files, and direct SSH to export the additional metadata files.
 
-![image](https://github.com/404Wolf/remarkableBackup/assets/108041238/72d3982b-67ec-4bf7-90c6-29a6f2c781bc)
+![image](https://github.com/404Wolf/remarkableBackup/assets/108041238/1d08023e-5149-4a62-809b-3cc46b272414)
+![image](https://github.com/404Wolf/remarkableBackup/assets/108041238/5a510145-68d0-4c2f-b24f-f87da0c48371)
+![image](https://github.com/404Wolf/remarkableBackup/assets/108041238/e6851697-8f4e-4b50-8fb6-be37ce36f545)
