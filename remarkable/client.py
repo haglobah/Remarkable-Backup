@@ -56,10 +56,16 @@ class Client:
 
     def download_file(self, rm_path: Path, out_path: Path):
         """Download a file from the tablet."""
-        if self.exists(rm_path):
-            self._sftp_client.get(rm_path.as_posix(), str(out_path))
-        else:
-            raise FileNotFoundError(f"Unable to locate file at {rm_path}.")
+        while True:
+            try:
+                if self.exists(rm_path):
+                    self._sftp_client.get(rm_path.as_posix(), str(out_path))
+                else:
+                    raise FileNotFoundError(f"Unable to locate file at {rm_path}.")
+                break
+            except paramiko.SSHException:
+                input("Lost connection to tablet. Please reconnect and press enter to continue.")
+                self.__enter__()
 
     def download_dir(self, rm_path: Path, out_path: Path):
         """Download a directory from the tablet."""

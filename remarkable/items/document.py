@@ -17,9 +17,14 @@ class Document(Item):
 
     def pdf(self, path: Path):
         """Obtain document as PDF."""
-        document = requests.get(f"http://{config.host}/download/{self.id}/placeholder")
-        with open(path, "wb") as f:
-            f.write(document.content)
+        while True:
+            try:
+                document = requests.get(f"http://{config.host}/download/{self.id}/placeholder")
+                with open(path, "wb") as f:
+                    f.write(document.content)
+                break
+            except requests.exceptions.ConnectionError:
+                    input("Lost connection to tablet. Please reconnect and press enter to continue.")
 
     def rmn(self, client: Client, path: Path):
         with tempfile.TemporaryDirectory() as tempdir:
